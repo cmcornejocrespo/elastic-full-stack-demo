@@ -1,0 +1,28 @@
+apm-server:
+  host: apm-server:8200
+
+output:
+  elasticsearch:
+    hosts: http://elasticsearch:9200
+    indices:
+      - index: "apm-%{[beat.version]}-sourcemap"
+        when.contains:
+          processor.event: "sourcemap"
+
+      - index: "apm-%{[beat.version]}-error-%{+yyyy.MM.dd}"
+        when.contains:
+          processor.event: "error"
+
+      - index: "apm-%{[beat.version]}-transaction-%{+yyyy.MM.dd}"
+        when.contains:
+          processor.event: "transaction"
+
+      - index: "apm-%{[beat.version]}-span-%{+yyyy.MM.dd}"
+        when.contains:
+          processor.event: "span"
+
+setup:
+  kibana:
+    host: "http://kibana:5601"
+  dashboards:
+    enabled: true

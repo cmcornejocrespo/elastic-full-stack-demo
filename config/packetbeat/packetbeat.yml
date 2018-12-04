@@ -1,0 +1,35 @@
+packetbeat.interfaces.device: any
+
+packetbeat.flows:
+  timeout: 30s
+  period: 10s
+
+processors:
+- add_docker_metadata:
+- add_cloud_metadata: ~
+
+packetbeat.protocols:
+- type: icmp
+  enabled: true
+- type: tls
+  ports: [9443, 9444, 9445, 9446, 9763, 8243, 8280, 9090, 9453]
+- type: http
+  ports: [9200,9300, 5000, 9600, 5555, 5601, 8200]
+  hide_keywords: ["pass", "password", "passwd"]
+  send_headers: ["User-Agent", "Cookie", "Set-Cookie"]
+  split_cookie: true
+  real_ip_header: "X-Forwarded-For"
+- type: mongodb
+  ports: [27017]
+  send_request: true
+  send_response: true
+  max_docs: 0
+  max_doc_length: 0
+
+output.elasticsearch:
+  hosts: ['localhost:9200']
+
+setup.kibana:
+  host: "http://localhost:5601"
+
+xpack.monitoring.enabled: true

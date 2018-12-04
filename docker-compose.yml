@@ -1,0 +1,297 @@
+version: '2.3'
+services:
+  elasticsearch:
+    restart: always
+    container_name: elasticsearch
+    build:
+      context: config/elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: elasticsearch
+    container_name: elasticsearch
+    volumes:
+      # make data locally persistent via local driver
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    healthcheck:
+      test: curl -s http://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 15s
+      start_period: 30s
+      timeout: 10s
+      retries: 5
+    networks: ['elastic-network']
+  logstash:
+    restart: always
+    container_name: logstash
+    build:
+      context: config/logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: logstash
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+      - "5555:5555"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: curl -XGET 'localhost:9600/?pretty'
+      interval: 15s
+      timeout: 10s
+      start_period: 60s
+      retries: 10
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks: ['elastic-network']
+  kibana:
+    restart: always
+    container_name: kibana
+    build:
+      context: config/kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: kibana
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: curl -s http://localhost:5601 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    networks: ['elastic-network']
+  filebeat:
+    restart: always
+    build:
+      context: config/filebeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: filebeat
+    container_name: filebeat
+    user: root
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    depends_on:
+      logstash:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    healthcheck:
+      test: filebeat test config
+      start_period: 60s
+      timeout: 15s
+      retries: 5
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      # This is needed for filebeat to load container log path as specified in filebeat.yml
+      - "/var/lib/docker/containers/:/var/lib/docker/containers/:ro"
+      # This is needed for filebeat to load logs for system and auth modules
+      - "/var/log/:/var/log/:ro"
+    networks: ['elastic-network']
+  apm-server:
+    restart: always
+    build:
+      context: config/apm-server/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: apm-server
+    container_name: apm-server
+    ports: ['8200:8200']
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: curl -s http://localhost:8200/ >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks: ['elastic-network']
+  metricbeat:
+    restart: always
+    build:
+      context: config/metricbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: metricbeat
+    container_name: metricbeat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /:/hostfs:ro
+    user: root
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: metricbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks: ['elastic-network']
+  auditbeat:
+    restart: always
+    build:
+      context: config/auditbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: auditbeat
+    container_name: auditbeat
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    cap_add: ['AUDIT_CONTROL', 'AUDIT_READ']
+    # Auditbeat must run in the main process namespace.
+    pid: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: auditbeat --strict.perms=false test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks: ['elastic-network']
+  heartbeat:
+    restart: always
+    build:
+      context: config/heartbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: heartbeat
+    container_name: heartbeat
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: heartbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks: ['elastic-network']
+  packetbeat:
+    restart: always
+    build:
+      context: config/packetbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: packetbeat
+    container_name: packetbeat
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Packetbeat needs some elevated privileges to capture network traffic.
+    # We'll grant them with POSIX capabilities.
+    cap_add: ['NET_RAW', 'NET_ADMIN']
+    # Use "host mode" networking to allow Packetbeat to capture traffic from
+    # the real network interface on the host, rather than being isolated to the
+    # container's virtual interface.
+    network_mode: host
+    # Since we did that, Packetbeat is not part of the "stack" Docker network
+    # that the other containers are connected to, and thus can't resolve the
+    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
+    # on "localhost", which is the Docker host machine in this context.
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: packetbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+  reader:
+    restart: always
+    container_name: reader
+    build:
+      context: app/reader/
+      args:
+        APM_AGENT_VERSION: $APM_AGENT_VERSION
+    environment:
+      - ELASTIC_APM_SERVICE_NAME=reader
+      - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
+      - ELASTIC_APM_APPLICATION_PACKAGES=com.dbg
+      - ELASTIC_APM_ENABLE_LOG_CORRELATION=true
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: curl -I http://localhost:8082
+      interval: 30s
+      start_period: 30s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      todo:
+        condition: service_healthy
+    networks: ['elastic-network']
+  todo:
+    restart: always
+    container_name: todo
+    build:
+      context: app/todo/
+      args:
+        APM_AGENT_VERSION: $APM_AGENT_VERSION
+    environment:
+    - ELASTIC_APM_SERVICE_NAME=todo
+    - ELASTIC_APM_SERVER_URLS=http://apm-server:8200
+    - ELASTIC_APM_APPLICATION_PACKAGES=com.dbg
+    - ELASTIC_APM_ENABLE_LOG_CORRELATION=true
+    ports:
+    - "8081:8081"
+    healthcheck:
+      test: curl -I http://localhost:8081
+      interval: 30s
+      start_period: 60s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      apm-server:
+        condition: service_healthy
+      filebeat:
+        condition: service_healthy
+    networks: ['elastic-network']
+networks:
+  elastic-network:
+volumes:
+  elasticsearch_data:
+    driver: local

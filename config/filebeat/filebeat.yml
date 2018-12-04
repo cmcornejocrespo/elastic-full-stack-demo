@@ -1,0 +1,32 @@
+filebeat.autodiscover:
+  # List of enabled autodiscover providers
+  providers:
+    - type: docker
+      templates:
+        - condition:
+            or:
+              - equals:
+                  docker.container.name: wso2am
+              - equals:
+                  docker.container.name: reader
+              - equals:
+                  docker.container.name: todo
+          config:
+            - type: log
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+              fields_under_root: true
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+setup.kibana:
+  host: "kibana:5601"
+
+output.logstash:
+  hosts: ["logstash:5555"]
+
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
+    hosts: ["http://elasticsearch:9200"]
