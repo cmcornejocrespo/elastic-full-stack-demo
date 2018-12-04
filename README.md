@@ -191,7 +191,7 @@ setup.kibana:
 xpack.monitoring.enabled: true
 ```
 
-- apm-server.yml [doc](https://www.elastic.co/guide/en/beats/apm-server/current/index.html)
+- apm-server.yml [doc](https://www.elastic.co/guide/en/apm/get-started/current/index.html)
 ```yaml
 apm-server:
   host: apm-server:8200
