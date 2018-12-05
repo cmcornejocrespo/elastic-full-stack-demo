@@ -101,30 +101,30 @@ services:
       # This is needed for filebeat to load logs for system and auth modules
       - "/var/log/:/var/log/:ro"
     networks: ['elastic-network']
-  apm-server:
-    restart: always
-    build:
-      context: config/apm-server/
-      args:
-        ELK_VERSION: $ELK_VERSION
-        ELASTIC_COMPONENT: apm-server
-    container_name: apm-server
-    ports: ['8200:8200']
-    command:
-      - "--setup"
-      - "-e"
-      - "--strict.perms=false"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-    healthcheck:
-      test: curl -s http://localhost:8200/ >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks: ['elastic-network']
+#  apm-server:
+#    restart: always
+#    build:
+#      context: config/apm-server/
+#      args:
+#        ELK_VERSION: $ELK_VERSION
+#        ELASTIC_COMPONENT: apm-server
+#    container_name: apm-server
+#    ports: ['8200:8200']
+#    command:
+#      - "--setup"
+#      - "-e"
+#      - "--strict.perms=false"
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#      kibana:
+#        condition: service_healthy
+#    healthcheck:
+#      test: curl -s http://localhost:8200/ >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+#    networks: ['elastic-network']
   metricbeat:
     restart: always
     build:
@@ -154,32 +154,32 @@ services:
       timeout: 15s
       retries: 5
     networks: ['elastic-network']
-  auditbeat:
-    restart: always
-    build:
-      context: config/auditbeat/
-      args:
-        ELK_VERSION: $ELK_VERSION
-        ELASTIC_COMPONENT: auditbeat
-    container_name: auditbeat
-    command:
-      - "--setup"
-      - "-e"
-      - "--strict.perms=false"
-    cap_add: ['AUDIT_CONTROL', 'AUDIT_READ']
-    # Auditbeat must run in the main process namespace.
-    pid: host
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-    healthcheck:
-      test: auditbeat --strict.perms=false test config
-      interval: 30s
-      timeout: 15s
-      retries: 5
-    networks: ['elastic-network']
+#  auditbeat:
+#    restart: always
+#    build:
+#      context: config/auditbeat/
+#      args:
+#        ELK_VERSION: $ELK_VERSION
+#        ELASTIC_COMPONENT: auditbeat
+#    container_name: auditbeat
+#    command:
+#      - "--setup"
+#      - "-e"
+#      - "--strict.perms=false"
+#    cap_add: ['AUDIT_CONTROL', 'AUDIT_READ']
+#    # Auditbeat must run in the main process namespace.
+#    pid: host
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#      kibana:
+#        condition: service_healthy
+#    healthcheck:
+#      test: auditbeat --strict.perms=false test config
+#      interval: 30s
+#      timeout: 15s
+#      retries: 5
+#    networks: ['elastic-network']
   heartbeat:
     restart: always
     build:
@@ -203,43 +203,43 @@ services:
       timeout: 15s
       retries: 5
     networks: ['elastic-network']
-  packetbeat:
-    restart: always
-    build:
-      context: config/packetbeat/
-      args:
-        ELK_VERSION: $ELK_VERSION
-        ELASTIC_COMPONENT: packetbeat
-    container_name: packetbeat
-    user: root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    # Packetbeat needs some elevated privileges to capture network traffic.
-    # We'll grant them with POSIX capabilities.
-    cap_add: ['NET_RAW', 'NET_ADMIN']
-    # Use "host mode" networking to allow Packetbeat to capture traffic from
-    # the real network interface on the host, rather than being isolated to the
-    # container's virtual interface.
-    network_mode: host
-    # Since we did that, Packetbeat is not part of the "stack" Docker network
-    # that the other containers are connected to, and thus can't resolve the
-    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
-    # on "localhost", which is the Docker host machine in this context.
-    command:
-      - "--setup"
-      - "-e"
-      - "--strict.perms=false"
-
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-    healthcheck:
-      test: packetbeat test config
-      interval: 30s
-      timeout: 15s
-      retries: 5
+#  packetbeat:
+#    restart: always
+#    build:
+#      context: config/packetbeat/
+#      args:
+#        ELK_VERSION: $ELK_VERSION
+#        ELASTIC_COMPONENT: packetbeat
+#    container_name: packetbeat
+#    user: root
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    # Packetbeat needs some elevated privileges to capture network traffic.
+#    # We'll grant them with POSIX capabilities.
+#    cap_add: ['NET_RAW', 'NET_ADMIN']
+#    # Use "host mode" networking to allow Packetbeat to capture traffic from
+#    # the real network interface on the host, rather than being isolated to the
+#    # container's virtual interface.
+#    network_mode: host
+#    # Since we did that, Packetbeat is not part of the "stack" Docker network
+#    # that the other containers are connected to, and thus can't resolve the
+#    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
+#    # on "localhost", which is the Docker host machine in this context.
+#    command:
+#      - "--setup"
+#      - "-e"
+#      - "--strict.perms=false"
+#
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#      kibana:
+#        condition: service_healthy
+#    healthcheck:
+#      test: packetbeat test config
+#      interval: 30s
+#      timeout: 15s
+#      retries: 5
   reader:
     restart: always
     container_name: reader
@@ -285,8 +285,8 @@ services:
       timeout: 3s
       retries: 5
     depends_on:
-      apm-server:
-        condition: service_healthy
+#      apm-server:
+#        condition: service_healthy
       filebeat:
         condition: service_healthy
     networks: ['elastic-network']
