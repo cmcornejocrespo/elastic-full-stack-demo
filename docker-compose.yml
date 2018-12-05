@@ -154,32 +154,32 @@ services:
       timeout: 15s
       retries: 5
     networks: ['elastic-network']
-#  auditbeat:
-#    restart: always
-#    build:
-#      context: config/auditbeat/
-#      args:
-#        ELK_VERSION: $ELK_VERSION
-#        ELASTIC_COMPONENT: auditbeat
-#    container_name: auditbeat
-#    command:
-#      - "--setup"
-#      - "-e"
-#      - "--strict.perms=false"
-#    cap_add: ['AUDIT_CONTROL', 'AUDIT_READ']
-#    # Auditbeat must run in the main process namespace.
-#    pid: host
-#    depends_on:
-#      elasticsearch:
-#        condition: service_healthy
-#      kibana:
-#        condition: service_healthy
-#    healthcheck:
-#      test: auditbeat --strict.perms=false test config
-#      interval: 30s
-#      timeout: 15s
-#      retries: 5
-#    networks: ['elastic-network']
+  auditbeat:
+    restart: always
+    build:
+      context: config/auditbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: auditbeat
+    container_name: auditbeat
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    cap_add: ['AUDIT_CONTROL', 'AUDIT_READ']
+    # Auditbeat must run in the main process namespace.
+    pid: host
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: auditbeat --strict.perms=false test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    networks: ['elastic-network']
   heartbeat:
     restart: always
     build:
