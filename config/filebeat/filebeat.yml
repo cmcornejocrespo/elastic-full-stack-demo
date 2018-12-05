@@ -6,8 +6,6 @@ filebeat.autodiscover:
         - condition:
             or:
               - equals:
-                  docker.container.name: wso2am
-              - equals:
                   docker.container.name: reader
               - equals:
                   docker.container.name: todo
@@ -24,11 +22,8 @@ setup.kibana:
   host: "kibana:5601"
 
 output.kafka:
-  # initial brokers for reading cluster metadata
   hosts: ["kafka:9092"]
-
-  # message topic selection + partitioning
-  topic: 'log'
+  topic: 'filebeat'
   partition.round_robin:
     reachable_only: false
   required_acks: 1
