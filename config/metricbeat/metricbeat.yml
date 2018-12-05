@@ -1,12 +1,11 @@
-#metricbeat.config.modules:
-#  path: ${path.config}/modules.d/*.yml
-#  reload.enabled: false
-#
-#processors:
-#- add_cloud_metadata:
-
-output.elasticsearch:
-  hosts: ['elasticsearch:9200']
+output.kafka:
+  hosts: ["kafka:9092"]
+  topic: 'metricbeat'
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
 
 setup.kibana:
   host: "http://kibana:5601"
