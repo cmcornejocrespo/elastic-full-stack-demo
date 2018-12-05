@@ -203,43 +203,42 @@ services:
       timeout: 15s
       retries: 5
     networks: ['elastic-network']
-#  packetbeat:
-#    restart: always
-#    build:
-#      context: config/packetbeat/
-#      args:
-#        ELK_VERSION: $ELK_VERSION
-#        ELASTIC_COMPONENT: packetbeat
-#    container_name: packetbeat
-#    user: root
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    # Packetbeat needs some elevated privileges to capture network traffic.
-#    # We'll grant them with POSIX capabilities.
-#    cap_add: ['NET_RAW', 'NET_ADMIN']
-#    # Use "host mode" networking to allow Packetbeat to capture traffic from
-#    # the real network interface on the host, rather than being isolated to the
-#    # container's virtual interface.
-#    network_mode: host
-#    # Since we did that, Packetbeat is not part of the "stack" Docker network
-#    # that the other containers are connected to, and thus can't resolve the
-#    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
-#    # on "localhost", which is the Docker host machine in this context.
-#    command:
-#      - "--setup"
-#      - "-e"
-#      - "--strict.perms=false"
-#
-#    depends_on:
-#      elasticsearch:
-#        condition: service_healthy
-#      kibana:
-#        condition: service_healthy
-#    healthcheck:
-#      test: packetbeat test config
-#      interval: 30s
-#      timeout: 15s
-#      retries: 5
+  packetbeat:
+    restart: always
+    build:
+      context: config/packetbeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+        ELASTIC_COMPONENT: packetbeat
+    container_name: packetbeat
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Packetbeat needs some elevated privileges to capture network traffic.
+    # We'll grant them with POSIX capabilities.
+    cap_add: ['NET_RAW', 'NET_ADMIN']
+    # Use "host mode" networking to allow Packetbeat to capture traffic from
+    # the real network interface on the host, rather than being isolated to the
+    # container's virtual interface.
+    network_mode: host
+    # Since we did that, Packetbeat is not part of the "stack" Docker network
+    # that the other containers are connected to, and thus can't resolve the
+    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
+    # on "localhost", which is the Docker host machine in this context.
+    command:
+      - "--setup"
+      - "-e"
+      - "--strict.perms=false"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    healthcheck:
+      test: packetbeat test config
+      interval: 30s
+      timeout: 15s
+      retries: 5
   reader:
     restart: always
     container_name: reader

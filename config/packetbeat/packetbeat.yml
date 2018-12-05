@@ -6,7 +6,6 @@ packetbeat.flows:
 
 processors:
 - add_docker_metadata:
-- add_cloud_metadata: ~
 
 packetbeat.protocols:
 - type: icmp
@@ -26,8 +25,14 @@ packetbeat.protocols:
   max_docs: 0
   max_doc_length: 0
 
-output.elasticsearch:
-  hosts: ['localhost:9200']
+output.kafka:
+  hosts: ["localhost:9092"]
+  topic: 'packetbeat'
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
 
 setup.kibana:
   host: "http://localhost:5601"
