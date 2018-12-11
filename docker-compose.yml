@@ -221,10 +221,6 @@ services:
     # the real network interface on the host, rather than being isolated to the
     # container's virtual interface.
     network_mode: host
-    # Since we did that, Packetbeat is not part of the "stack" Docker network
-    # that the other containers are connected to, and thus can't resolve the
-    # hostname "elasticsearch". Instead, we'll tell it to find Elasticsearch
-    # on "localhost", which is the Docker host machine in this context.
     command:
       - "--setup"
       - "-e"
@@ -239,6 +235,8 @@ services:
       interval: 30s
       timeout: 15s
       retries: 5
+    extra_hosts:
+     - "kafka:127.0.0.1"
   reader:
     restart: always
     container_name: reader
@@ -300,7 +298,7 @@ services:
     image: wurstmeister/kafka
     container_name: kafka
     ports:
-      - "9092"
+      - "9092:9092"
     environment:
       KAFKA_LISTENERS: PLAINTEXT://:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
