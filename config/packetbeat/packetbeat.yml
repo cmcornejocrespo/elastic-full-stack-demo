@@ -37,4 +37,7 @@ output.kafka:
 setup.kibana:
   host: "http://localhost:5601"
 
-xpack.monitoring.enabled: true
+xpack.monitoring:
+  enabled: true
+  elasticsearch:
+    hosts: ["elasticsearch:9200"]

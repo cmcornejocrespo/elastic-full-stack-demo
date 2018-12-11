@@ -9,6 +9,10 @@ filebeat.autodiscover:
                   docker.container.name: reader
               - equals:
                   docker.container.name: todo
+              - equals:
+                  docker.container.name: zookeeper
+              - equals:
+                  docker.container.name: kafka
           config:
             - type: log
               paths:
@@ -33,4 +37,4 @@ output.kafka:
 xpack.monitoring:
   enabled: true
   elasticsearch:
-    hosts: ["http://elasticsearch:9200"]
+    hosts: ["elasticsearch:9200"]
