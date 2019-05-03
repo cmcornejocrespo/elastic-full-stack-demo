@@ -10,10 +10,8 @@ processors:
 packetbeat.protocols:
 - type: icmp
   enabled: true
-- type: tls
-  ports: [9443, 9444, 9445, 9446, 9763, 8243, 8280, 9090, 9453]
 - type: http
-  ports: [9200,9300, 5000, 9600, 5555, 5601, 8200]
+  ports: [9200, 9300, 5000, 9600, 5555, 5601, 8200, 8082, 8081]
   hide_keywords: ["pass", "password", "passwd"]
   send_headers: ["User-Agent", "Cookie", "Set-Cookie"]
   split_cookie: true
@@ -30,6 +28,10 @@ output.kafka:
 
 setup.kibana:
   host: "localhost:5601"
+
+queue.mem:
+  events: 4096
+  flush.timeout: 5s
 
 xpack.monitoring:
   enabled: true

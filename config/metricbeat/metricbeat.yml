@@ -9,45 +9,19 @@ output.kafka:
 
 setup.kibana:
   host: "http://kibana:5601"
+setup.dashboards.enabled: true
 
 metricbeat.modules:
 - module: docker
-  metricsets: ["container", "cpu", "diskio", "healthcheck", "info", "image", "memory", "network"]
+  metricsets: ["container", "cpu", "diskio", "healthcheck", "info", "memory", "network"]
   hosts: ["unix:///var/run/docker.sock"]
   period: 10s
-- module: system
-  metricsets: ["cpu", "load", "memory", "network", "process", "process_summary", "uptime", "core", "diskio", "filesystem", "fsstat", "raid", "socket"]
-  enabled: true
-  period: 10s
-  processes: ['.*']
-  cpu.metrics:  ["percentages"]
-  core.metrics: ["percentages"]
-- module: elasticsearch
-  metricsets: ["node", "node_stats"]
-  period: 10s
-  hosts: ["elasticsearch:9200"]
-  xpack.enabled: true
-- module: logstash
-  metricsets: ["node", "node_stats"]
-  enabled: true
-  period: 10s
-  hosts: ["logstash:5555"]
+
 - module: kibana
   metricsets: ["stats"]
   period: 10s
   hosts: ["kibana:5601"]
   xpack.enabled: true
-- module: zookeeper
-  enabled: true
-  metricsets: ["mntr"]
-  period: 10s
-  hosts: ["zookeeper:2181"]
-- module: kafka
-  metricsets: ["consumergroup", "partition"]
-  period: 10s
-  hosts: ["kafka:9092"]
-  enabled: true
-  client_id: metricbeat
 
 xpack.monitoring:
   enabled: true

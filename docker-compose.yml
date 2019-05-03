@@ -182,16 +182,19 @@ services:
     networks: ['elastic-network']
   heartbeat:
     restart: always
+    container_name: heartbeat
     build:
       context: config/heartbeat/
       args:
         ELK_VERSION: $ELK_VERSION
         ELASTIC_COMPONENT: heartbeat
-    container_name: heartbeat
+    user: root
     command:
       - "--setup"
       - "-e"
       - "--strict.perms=false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       elasticsearch:
         condition: service_healthy

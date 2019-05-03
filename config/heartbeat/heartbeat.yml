@@ -2,9 +2,11 @@ heartbeat.monitors:
 - type: http
   schedule: '@every 5s'
   urls:
-    - https://elasticsearch:9200
-    - http://kibana:5601
-
+    - http://elasticsearch:9200/_cluster/health
+    - http://kibana:5601/status
+    - http://logstash:9600/?pretty
+    - http://reader:8082
+    - http://todo:8081
 - type: icmp
   schedule: '@every 5s'
   hosts:
@@ -12,7 +14,10 @@ heartbeat.monitors:
     - kibana
 
 processors:
-- add_cloud_metadata:
+- add_docker_metadata:
+- add_process_metadata:
+    match_pids: [system.process.ppid]
+    target: system.process.parent
 
 output.kafka:
   hosts: ["kafka:9092"]
@@ -25,6 +30,11 @@ output.kafka:
 
 setup.kibana:
   host: "http://kibana:5601"
+setup.dashboards.enabled: true
+
+queue.mem:
+  events: 4096
+  flush.timeout: 5s
 
 xpack.monitoring:
   enabled: true
