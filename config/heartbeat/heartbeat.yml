@@ -1,15 +1,11 @@
 heartbeat.monitors:
-- type: http
-  schedule: '@every 5s'
-  urls:
-    - https://elasticsearch:9200
-    - http://kibana:5601
-
 - type: icmp
-  schedule: '@every 5s'
+  schedule: '@every 10s'
   hosts:
     - elasticsearch
     - kibana
+    - logstash
+    - apm-server
 
 processors:
 - add_cloud_metadata:

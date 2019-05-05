@@ -8,7 +8,6 @@ services:
       args:
         ELK_VERSION: $ELK_VERSION
         ELASTIC_COMPONENT: elasticsearch
-    container_name: elasticsearch
     volumes:
       # make data locally persistent via local driver
       - elasticsearch_data:/usr/share/elasticsearch/data
@@ -102,13 +101,13 @@ services:
       - "/var/log/:/var/log/:ro"
     networks: ['elastic-network']
   apm-server:
+    container_name: apm-server
     restart: always
     build:
       context: config/apm-server/
       args:
         ELK_VERSION: $ELK_VERSION
         ELASTIC_COMPONENT: apm-server
-    container_name: apm-server
     ports: ['8200:8200']
     command:
       - "--setup"
